@@ -1,23 +1,21 @@
 # Serialize.Linq
 
-##THIS IS A FORK OF THE ORIGINAL Serialize.Linq targeting ASPNetCore and Net4.6
+## THIS IS A FORK OF THE ORIGINAL Serialize.Linq targeting ASP.NET Core and Net4.6
 
 Serialize.Linq is a c# library for serializing linq expressions. 
-Formats it supports (but it is not limited to) are JSON, XML and BINARY.
 
 ## Installation
-Simple install via [NuGet][1]:
 
-    PM> Install-Package Serialize.Linq
-
+    Currently not available in nuget.
+    
 ## Building the source
 
-    git clone https://github.com/esskar/Serialize.Linq.git
+    git clone https://github.com/gottscj/Serialize.Linq.git
 
 After cloning the repository, run 
 
     cd src\
-    build.cmd
+    build\build.cmd
 
 __NOTE__: Opening the solution requires VS 2017.
 
