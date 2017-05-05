@@ -5,7 +5,6 @@
 Serialize.Linq is a c# library for serializing linq expressions. 
 
 ## Installation
-Simple install via [NuGet][1]:
 
     Currently not available in nuget.
     
