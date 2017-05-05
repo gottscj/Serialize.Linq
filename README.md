@@ -2,6 +2,8 @@
 
 ## THIS IS A FORK OF THE ORIGINAL Serialize.Linq targeting ASP.NET Core and Net4.6
 
+Find the original here: https://github.com/esskar/Serialize.Linq
+
 Serialize.Linq is a c# library for serializing linq expressions. 
 
 ## Installation
