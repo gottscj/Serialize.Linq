@@ -9,6 +9,8 @@
 using System;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Serialize.Linq.Interfaces;
 
 namespace Serialize.Linq.Nodes
@@ -22,9 +24,6 @@ namespace Serialize.Linq.Nodes
     #endif
 #else
     [DataContract(Name = "tE")]    
-#endif
-#if !SILVERLIGHT
-    [Serializable]
 #endif
     #endregion
     public abstract class ExpressionNode<TExpression> : ExpressionNode where TExpression : Expression
@@ -42,7 +41,7 @@ namespace Serialize.Linq.Nodes
         protected ExpressionNode(INodeFactory factory, TExpression expression)
             : base(factory, expression.NodeType, expression.Type)
         {
-            this.Initialize(expression);
+            Initialize(expression);
         }
 
         /// <summary>
@@ -70,9 +69,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "E")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public abstract class ExpressionNode : Node
     {
@@ -90,8 +86,8 @@ namespace Serialize.Linq.Nodes
         protected ExpressionNode(INodeFactory factory, ExpressionType nodeType, Type type = null)
             : base(factory)
         {
-            this.NodeType = nodeType;
-            this.Type = new TypeNode(factory, type);
+            NodeType = nodeType;
+            Type = new TypeNode(factory, type);
         }
 
         #region DataMember
@@ -124,6 +120,21 @@ namespace Serialize.Linq.Nodes
         #endregion
         public virtual TypeNode Type { get; set; }
 
+        #region DataMember
+#if !SERIALIZE_LINQ_OPTIMIZE_SIZE
+        /// <summary>
+        /// Gets or sets the type.
+        /// </summary>
+        /// <value>
+        /// The type.
+        /// </value>
+        [DataMember(EmitDefaultValue = false)]
+#else
+        [DataMember(EmitDefaultValue = false, Name = "TN")]
+#endif
+        #endregion
+        public virtual string TypeName => GetType().Name;
+
         /// <summary>
         /// Converts this instance to an expression.
         /// </summary>
@@ -136,7 +147,7 @@ namespace Serialize.Linq.Nodes
 
         public Expression ToExpression()
         {
-            return this.ToExpression(new ExpressionContext());
+            return ToExpression(new ExpressionContext());
         }
 
         /// <summary>
@@ -147,7 +158,7 @@ namespace Serialize.Linq.Nodes
         /// <returns></returns>
         public Expression<TDelegate> ToExpression<TDelegate>(ExpressionContext context = null)
         {
-            return this.ToExpression(ConvertToExpression<TDelegate>, context ?? new ExpressionContext());
+            return ToExpression(ConvertToExpression<TDelegate>, context ?? new ExpressionContext());
         }
 
         /// <summary>
@@ -158,7 +169,7 @@ namespace Serialize.Linq.Nodes
         /// <returns></returns>
         public Expression<Func<TEntity, bool>> ToBooleanExpression<TEntity>(ExpressionContext context = null)
         {
-            return this.ToExpression(ConvertToBooleanExpression<TEntity>, context ?? new ExpressionContext());
+            return ToExpression(ConvertToBooleanExpression<TEntity>, context ?? new ExpressionContext());
         }
 
         /// <summary>
@@ -202,7 +213,7 @@ namespace Serialize.Linq.Nodes
         /// </returns>
         public override string ToString()
         {
-            return this.ToExpression().ToString();
+            return ToExpression().ToString();
         }
 
         /// <summary>

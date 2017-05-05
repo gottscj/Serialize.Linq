@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-#region Copyright
+﻿#region Copyright
 //  Copyright, Sascha Kiefer (esskar)
 //  Released under LGPL License.
 //  
 //  License: https://raw.github.com/esskar/Serialize.Linq/master/LICENSE
 //  Contributing: https://github.com/esskar/Serialize.Linq
 #endregion
-
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using Newtonsoft.Json;
 using Serialize.Linq.Factories;
 using Serialize.Linq.Interfaces;
 using Serialize.Linq.Nodes;
-using Serialize.Linq.Serializers;
 
 namespace Serialize.Linq.Extensions
 {
@@ -30,11 +28,18 @@ namespace Serialize.Linq.Extensions
         /// <returns></returns>
         public static ExpressionNode ToExpressionNode(this Expression expression, FactorySettings factorySettings = null)
         {
-            var converter = new ExpressionConverter();
-            return converter.Convert(expression, factorySettings);
+            var factory = CreateFactory(expression, factorySettings);
+            return factory.Create(expression);
+        }
+        
+        public static INodeFactory CreateFactory(this Expression expression, FactorySettings factorySettings)
+        {
+            var lambda = expression as LambdaExpression;
+            if (lambda != null)
+                return new DefaultNodeFactory(lambda.Parameters.Select(p => p.Type), factorySettings);
+            return new NodeFactory(factorySettings);
         }
 
-#if !SILVERLIGHT
         /// <summary>
         /// Converts an expression to an json encoded string.
         /// </summary>
@@ -43,90 +48,22 @@ namespace Serialize.Linq.Extensions
         /// <returns></returns>
         public static string ToJson(this Expression expression, FactorySettings factorySettings = null)
         {
-            return expression.ToJson(expression.GetDefaultFactory(factorySettings));
+            var expressionNode = expression.ToExpressionNode(factorySettings);
+            return JsonConvert.SerializeObject(expressionNode, new ExpressionNodeJsonConverter());
         }
         
         /// <summary>
-        /// Converts an expression to an json encoded string using the given factory.
+        /// Converts expression as json encoded string to Expression
         /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="factory">The factory.</param>
+        /// <param name="json"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        public static string ToJson(this Expression expression, INodeFactory factory)
+        public static Expression ToExpression(this string json, ExpressionContext context = null)
         {
-            return expression.ToJson(factory, new JsonSerializer());
+            var expressionNode = JsonConvert.DeserializeObject<ExpressionNode>(json, new ExpressionNodeJsonConverter());
+            return expressionNode?.ToExpression(context ?? new ExpressionContext());
         }
-#endif
-
-        /// <summary>
-        /// Converts an expression to an json encoded string using the given factory and serializer.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="factory">The factory.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns></returns>
-        public static string ToJson(this Expression expression, INodeFactory factory, IJsonSerializer serializer)
-        {
-            return expression.ToText(factory, serializer);
-        }
-
-        /// <summary>
-        /// Converts an expression to an xml encoded string.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="factorySettings">The factory settings to use.</param>
-        /// <returns></returns>
-        public static string ToXml(this Expression expression, FactorySettings factorySettings = null)
-        {
-            return expression.ToXml(expression.GetDefaultFactory(factorySettings));
-        }
-
-        /// <summary>
-        /// Converts an expression to an xml encoded string using the given factory.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="factory">The factory.</param>
-        /// <returns></returns>
-        public static string ToXml(this Expression expression, INodeFactory factory)
-        {
-            return expression.ToXml(factory, new XmlSerializer());
-        }
-
-        /// <summary>
-        /// Converts an expression to an xml encoded string using the given factory and serializer.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="factory">The factory.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns></returns>
-        public static string ToXml(this Expression expression, INodeFactory factory, IXmlSerializer serializer)
-        {
-            return expression.ToText(factory, serializer);
-        }
-
-        /// <summary>
-        /// Converts an expression to an encoded string using the given factory and serializer.
-        /// The encoding is decided by the serializer.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <param name="factory">The factory.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <returns></returns>
-        /// <exception cref="System.ArgumentNullException">
-        /// factory
-        /// or
-        /// serializer
-        /// </exception>
-        public static string ToText(this Expression expression, INodeFactory factory, ITextSerializer serializer)
-        {            
-            if(factory == null)
-                throw new ArgumentNullException("factory");
-            if(serializer == null)
-                throw new ArgumentNullException("serializer");
-
-            return serializer.Serialize(factory.Create(expression));
-        }
-
+        
         /// <summary>
         /// Gets the default factory.
         /// </summary>
@@ -165,7 +102,7 @@ namespace Serialize.Linq.Extensions
             }
             else if (expression is ConditionalExpression)
             {
-                var conditionalExpression = (ConditionalExpression)expression;
+                var conditionalExpression = (ConditionalExpression) expression;
 
                 yield return conditionalExpression.IfTrue;
                 yield return conditionalExpression.IfFalse;
@@ -180,15 +117,15 @@ namespace Serialize.Linq.Extensions
             }
             else if (expression is ListInitExpression)
             {
-                yield return (expression as ListInitExpression).NewExpression;
+                yield return ((ListInitExpression) expression).NewExpression;
             }
             else if (expression is MemberExpression)
             {
-                yield return (expression as MemberExpression).Expression;
+                yield return ((MemberExpression) expression).Expression;
             }
             else if (expression is MemberInitExpression)
             {
-                yield return (expression as MemberInitExpression).NewExpression;
+                yield return ((MemberInitExpression) expression).NewExpression;
             }
             else if (expression is MethodCallExpression)
             {
@@ -200,21 +137,21 @@ namespace Serialize.Linq.Extensions
             }
             else if (expression is NewArrayExpression)
             {
-                foreach (var item in (expression as NewArrayExpression).Expressions)
+                foreach (var item in ((NewArrayExpression) expression).Expressions)
                     yield return item;
             }
             else if (expression is NewExpression)
             {
-                foreach (var item in (expression as NewExpression).Arguments)
+                foreach (var item in ((NewExpression) expression).Arguments)
                     yield return item;
             }
             else if (expression is TypeBinaryExpression)
             {
-                yield return (expression as TypeBinaryExpression).Expression;
+                yield return ((TypeBinaryExpression) expression).Expression;
             }
             else if (expression is UnaryExpression)
             {
-                yield return (expression as UnaryExpression).Operand;
+                yield return ((UnaryExpression) expression).Operand;
             }
         }
 

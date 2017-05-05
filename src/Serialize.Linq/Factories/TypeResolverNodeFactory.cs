@@ -29,7 +29,8 @@ namespace Serialize.Linq.Factories
             : base(factorySettings)
         {
             if (expectedTypes == null)
-                throw new ArgumentNullException("expectedTypes");
+                throw new ArgumentNullException(nameof(expectedTypes));
+
             _expectedTypes = expectedTypes.ToArray();
         }
 
@@ -44,11 +45,11 @@ namespace Serialize.Linq.Factories
         {
             foreach (var expectedType in _expectedTypes)
             {
-                if (declaredType == expectedType || declaredType.IsSubclassOf(expectedType))
+                if (declaredType == expectedType || declaredType.GetTypeInfo().IsSubclassOf(expectedType))
                     return true;
-                if (expectedType.IsInterface)
+                if (expectedType.GetTypeInfo().IsInterface)
                 {
-                    var resultTypes = declaredType.GetInterfaces();
+                    var resultTypes = declaredType.GetTypeInfo().GetInterfaces();
                     if (resultTypes.Contains(expectedType))
                         return true;
                 }
@@ -80,7 +81,7 @@ namespace Serialize.Linq.Factories
                 run = next;
             }
 
-            if (this.IsExpectedType(run.Member.DeclaringType))
+            if (IsExpectedType(run.Member.DeclaringType))
                 return false;
 
             var field = memberExpression.Member as FieldInfo;
@@ -91,8 +92,8 @@ namespace Serialize.Linq.Factories
                     if (memberExpression.Expression.NodeType == ExpressionType.Constant)
                     {
                         var constantExpression = (ConstantExpression)memberExpression.Expression;
-                        var flags = this.GetBindingFlags();
-                        var fields = flags == null ? constantExpression.Type.GetFields() : constantExpression.Type.GetFields(flags.Value);
+                        var flags = GetBindingFlags();
+                        var fields = flags == null ? constantExpression.Type.GetTypeInfo().GetFields() : constantExpression.Type.GetTypeInfo().GetFields(flags.Value);
                         var memberField = fields.Single(n => memberExpression.Member.Name.Equals(n.Name));
                         constantValueType = memberField.FieldType;
                         constantValue = memberField.GetValue(constantExpression.Value);
@@ -100,7 +101,7 @@ namespace Serialize.Linq.Factories
                     }
                     var subExpression = memberExpression.Expression as MemberExpression;
                     if (subExpression != null)
-                        return this.TryGetConstantValueFromMemberExpression(subExpression, out constantValue, out constantValueType);
+                        return TryGetConstantValueFromMemberExpression(subExpression, out constantValue, out constantValueType);
                 }
                 if (field.IsPrivate || field.IsFamilyAndAssembly)
                 {
@@ -147,10 +148,10 @@ namespace Serialize.Linq.Factories
                 return false;
 
             var constantExpression = (ConstantExpression)memberExpression.Expression;
-            var flags = this.GetBindingFlags();
+            var flags = GetBindingFlags();
             var fields = flags == null
-                ? constantExpression.Type.GetFields()
-                : constantExpression.Type.GetFields(flags.Value);
+                ? constantExpression.Type.GetTypeInfo().GetFields()
+                : constantExpression.Type.GetTypeInfo().GetFields(flags.Value);
             var memberField = fields.Single(n => memberExpression.Member.Name.Equals(n.Name));
             var constantValue = memberField.GetValue(constantExpression.Value);
 
@@ -166,13 +167,13 @@ namespace Serialize.Linq.Factories
         private ExpressionNode ResolveMemberExpression(MemberExpression memberExpression)
         {
             Expression inlineExpression;
-            if (this.TryToInlineExpression(memberExpression, out inlineExpression))
-                return this.Create(inlineExpression);
+            if (TryToInlineExpression(memberExpression, out inlineExpression))
+                return Create(inlineExpression);
 
             object constantValue;
             Type constantValueType;
 
-            return this.TryGetConstantValueFromMemberExpression(memberExpression, out constantValue, out constantValueType)
+            return TryGetConstantValueFromMemberExpression(memberExpression, out constantValue, out constantValueType)
                 ? new ConstantExpressionNode(this, constantValue, constantValueType)
                 : base.Create(memberExpression);
         }
@@ -189,7 +190,7 @@ namespace Serialize.Linq.Factories
             {
                 object constantValue;
                 Type constantValueType;
-                if (this.TryGetConstantValueFromMemberExpression(memberExpression, out constantValue, out constantValueType))
+                if (TryGetConstantValueFromMemberExpression(memberExpression, out constantValue, out constantValueType))
                 {
                     if (methodCallExpression.Arguments.Count == 0)
                         return new ConstantExpressionNode(this, Expression.Lambda(methodCallExpression).Compile().DynamicInvoke());
@@ -212,11 +213,11 @@ namespace Serialize.Linq.Factories
         {
             var member = expression as MemberExpression;
             if (member != null)
-                return this.ResolveMemberExpression(member);
+                return ResolveMemberExpression(member);
 
             var method = expression as MethodCallExpression;
             if (method != null)
-                return this.ResolveMethodCallExpression(method);
+                return ResolveMethodCallExpression(method);
 
             return base.Create(expression);
         }

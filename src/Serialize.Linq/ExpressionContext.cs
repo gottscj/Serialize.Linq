@@ -7,13 +7,10 @@
 #endregion
 
 using System;
-using System.Reflection;
-#if !WINDOWS_PHONE
 using System.Collections.Concurrent;
-#else
-using Serialize.Linq.Internals;
-#endif
+using System.Reflection;
 using System.Linq.Expressions;
+using Microsoft.Extensions.DependencyModel;
 using Serialize.Linq.Nodes;
 
 namespace Serialize.Linq
@@ -33,7 +30,7 @@ namespace Serialize.Linq
 
         public virtual BindingFlags? GetBindingFlags()
         {
-            if (!this.AllowPrivateFieldAccess)
+            if (!AllowPrivateFieldAccess)
                 return null;
 
             return BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -50,25 +47,45 @@ namespace Serialize.Linq
         public virtual Type ResolveType(TypeNode node)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
 
             if (string.IsNullOrWhiteSpace(node.Name))
                 return null;
 
-            return _typeCache.GetOrAdd(node.Name, n =>
+            return _typeCache.GetOrAdd(node.Name, typeName =>
             {
-                var type = Type.GetType(n);
-                if (type == null)
+                var type = Type.GetType(typeName);
+                if (type != null)
                 {
-                    foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                    {
-                        type = assembly.GetType(n);
-                        if (type != null)
-                            break;
-                    }
-
+                    return type;
                 }
-                return type;
+
+#if NET46
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    type = assembly.GetType(typeName);
+                    if (type != null)
+                        return type;
+                }
+#else
+                foreach (var lib in DependencyContext.Default.RuntimeLibraries)
+                {
+                    foreach (var assemblyName in lib.Assemblies)
+                    {
+                        type = Assembly
+                            .Load(assemblyName.Name)
+                            .GetType(typeName);
+                        if (type != null)
+                        {
+                            return type;
+                        }
+                    }
+                }
+#endif
+
+
+
+                throw new InvalidOperationException($"Could not resolve type: {typeName}");
             });
         }
     }

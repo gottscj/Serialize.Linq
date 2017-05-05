@@ -21,9 +21,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "MIN")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class MethodInfoNode : MemberNode<MethodInfo>
     {
@@ -61,9 +58,9 @@ namespace Serialize.Linq.Nodes
             if (!memberInfo.IsGenericMethod)
                 return;
 
-            this.IsGenericMethod = true;
-            this.Signature = memberInfo.GetGenericMethodDefinition().ToString();
-            this.GenericArguments = memberInfo.GetGenericArguments().Select(a => this.Factory.Create(a)).ToArray();
+            IsGenericMethod = true;
+            Signature = memberInfo.GetGenericMethodDefinition().ToString();
+            GenericArguments = memberInfo.GetGenericArguments().Select(a => Factory.Create(a)).ToArray();
         }
 
         public override MethodInfo ToMemberInfo(ExpressionContext context)
@@ -72,9 +69,9 @@ namespace Serialize.Linq.Nodes
             if (method == null)
                 return null;
 
-            if (this.IsGenericMethod && this.GenericArguments != null && this.GenericArguments.Length > 0)
+            if (IsGenericMethod && GenericArguments != null && GenericArguments.Length > 0)
             {
-                var arguments = this.GenericArguments
+                var arguments = GenericArguments
                     .Select(a => a.ToType(context))
                     .Where(t => t != null).ToArray();
                 if (arguments.Length > 0)

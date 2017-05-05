@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serialize.Linq.Serializers;
+using Serialize.Linq.Extensions;
 
 namespace Serialize.Linq.Tests.Issues
 {
@@ -16,9 +16,8 @@ namespace Serialize.Linq.Tests.Issues
             Expression<Func<Order, bool>> predicate = x => x.Id > 0 && x.Id < 5;
 
             Expression<Func<Document, bool>> pred = x => x.Orders.AsQueryable().Any(predicate);
-
-            var serializer = new ExpressionSerializer(new BinarySerializer());
-            var value = serializer.SerializeBinary(pred);
+            
+            var value = pred.ToJson();
 
             Assert.IsNotNull(value);
         }
@@ -29,11 +28,9 @@ namespace Serialize.Linq.Tests.Issues
             Expression<Func<Order, bool>> predicate = x => x.Id > 0 && x.Id < 5;
 
             Expression<Func<Document, bool>> pred = x => x.Orders.AsQueryable().Any(predicate);
-
-            var serializer = new ExpressionSerializer(new BinarySerializer());
-            var value = serializer.SerializeBinary(pred);
-
-            var expression = serializer.DeserializeBinary(value);
+            
+            
+            var expression = pred.ToJson().ToExpression();
             Assert.IsNotNull(expression);
         }
 

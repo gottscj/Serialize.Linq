@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Serialize.Linq.Extensions;
-using Serialize.Linq.Serializers;
 using Serialize.Linq.Tests.Internals;
 
 namespace Serialize.Linq.Tests.Issues
@@ -17,14 +13,6 @@ namespace Serialize.Linq.Tests.Issues
     [TestClass]
     public class Issue69
     {
-        private ExpressionSerializer _jsonExpressionSerializer;
-
-        [TestInitialize]
-        public void Initialize()
-        {
-            _jsonExpressionSerializer = new ExpressionSerializer(new JsonSerializer());
-        }
-
         [TestMethod]
         public void JsonSerialzeAndDeserialize1969Utc()
         {
@@ -66,8 +54,8 @@ namespace Serialize.Linq.Tests.Issues
             Expression<Func<DateTime>> actual = () => dt;
             actual = actual.Update(Expression.Constant(dt), new List<ParameterExpression>());
 
-            var serialized = _jsonExpressionSerializer.SerializeText(actual);
-            var expected = _jsonExpressionSerializer.DeserializeText(serialized);
+            var serialized = actual.ToJson();
+            var expected = serialized.ToExpression();
             ExpressionAssert.AreEqual(expected, actual);
         }
     }

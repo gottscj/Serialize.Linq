@@ -20,9 +20,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "MB")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public abstract class MemberBindingNode : Node
     {
@@ -34,8 +31,8 @@ namespace Serialize.Linq.Nodes
         protected MemberBindingNode(INodeFactory factory, MemberBindingType bindingType, MemberInfo memberInfo)
             : base(factory)
         {
-            this.BindingType = bindingType;
-            this.Member = new MemberInfoNode(this.Factory, memberInfo);
+            BindingType = bindingType;
+            Member = new MemberInfoNode(Factory, memberInfo);
         }
         
         #region DataMember

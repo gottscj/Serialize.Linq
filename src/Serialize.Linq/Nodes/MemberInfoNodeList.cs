@@ -21,9 +21,6 @@ namespace Serialize.Linq.Nodes
 #else
     [CollectionDataContract(Name = "MIL")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class MemberInfoNodeList : List<MemberInfoNode>
     {
@@ -34,7 +31,7 @@ namespace Serialize.Linq.Nodes
             if (factory == null)
                 throw new ArgumentNullException("factory");
             if(items != null)
-                this.AddRange(items.Select(m => new MemberInfoNode(factory, m)));
+                AddRange(items.Select(m => new MemberInfoNode(factory, m)));
         }
 
         public IEnumerable<MemberInfo> GetMembers(ExpressionContext context)

@@ -20,9 +20,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "MI")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class MemberInfoNode : MemberNode<MemberInfo>
     {
@@ -36,8 +33,8 @@ namespace Serialize.Linq.Nodes
             BindingFlags? flags = null;
             if (context != null)
                 flags = context.GetBindingFlags();
-            else if (this.Factory != null)
-                flags = this.Factory.GetBindingFlags();
+            else if (Factory != null)
+                flags = Factory.GetBindingFlags();
             return flags == null ? type.GetMembers() : type.GetMembers(flags.Value);
         }
     }

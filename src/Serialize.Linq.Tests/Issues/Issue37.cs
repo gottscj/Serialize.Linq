@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serialize.Linq.Interfaces;
-using Serialize.Linq.Serializers;
+using Newtonsoft.Json;
+using Serialize.Linq.Extensions;
 using Serialize.Linq.Tests.Internals;
 
 namespace Serialize.Linq.Tests.Issues
@@ -22,16 +22,11 @@ namespace Serialize.Linq.Tests.Issues
             expressions.Add(objectExp);
             expressions.Add(stringExp);
 
-            foreach (var textSerializer in new ITextSerializer[] { new JsonSerializer(), new XmlSerializer() })
+            foreach (var expected in expressions)
             {
-                var serializer = new ExpressionSerializer(textSerializer);
-                foreach (var expected in expressions)
-                {
-                    var serialized = serializer.SerializeText(expected);
-                    var actual = serializer.DeserializeText(serialized);
+                var actual = expected.ToJson().ToExpression();
 
-                    ExpressionAssert.AreEqual(expected, actual);
-                }
+                ExpressionAssert.AreEqual(expected, actual);
             }
         }
 

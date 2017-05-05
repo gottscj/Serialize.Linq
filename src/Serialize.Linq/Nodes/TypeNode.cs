@@ -9,7 +9,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Serialize.Linq.Interfaces;
 
@@ -21,9 +20,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "T")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class TypeNode : Node
     {        
@@ -32,7 +28,7 @@ namespace Serialize.Linq.Nodes
         public TypeNode(INodeFactory factory, Type type)
             : base(factory)
         {
-            this.Initialize(type);
+            Initialize(type);
         }
 
         private void Initialize(Type type)
@@ -40,27 +36,15 @@ namespace Serialize.Linq.Nodes
             if (type == null)
                 return;
 
-            var isAnonymousType = Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
-                && type.IsGenericType && type.Name.Contains("AnonymousType")
-                && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
-                && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
-
-            if (type.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
-                this.GenericArguments = type.GetGenericArguments().Select(t => new TypeNode(this.Factory, t)).ToArray();
-
+                GenericArguments = type.GetTypeInfo().GetGenericArguments().Select(t => new TypeNode(Factory, t)).ToArray();
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (isAnonymousType || !this.Factory.Settings.UseRelaxedTypeNames)
-                    this.Name = typeDefinition.AssemblyQualifiedName;
-                else
-                    this.Name = typeDefinition.FullName;
+                Name = typeDefinition.AssemblyQualifiedName;
             }
             else
             {
-                if (isAnonymousType || !this.Factory.Settings.UseRelaxedTypeNames)
-                    this.Name = type.AssemblyQualifiedName;
-                else
-                    this.Name = type.FullName;
+                Name = type.AssemblyQualifiedName;
             }            
         }
 
@@ -87,13 +71,13 @@ namespace Serialize.Linq.Nodes
             var type = context.ResolveType(this);
             if (type == null)
             {
-                if (string.IsNullOrWhiteSpace(this.Name))
+                if (string.IsNullOrWhiteSpace(Name))
                     return null;
-                throw new SerializationException(string.Format("Failed to serialize '{0}' to a type object.", this.Name));
+                throw new SerializationException(string.Format("Failed to serialize '{0}' to a type object.", Name));
             }
 
-            if (this.GenericArguments != null)            
-                type = type.MakeGenericType(this.GenericArguments.Select(t => t.ToType(context)).ToArray());
+            if (GenericArguments != null)            
+                type = type.MakeGenericType(GenericArguments.Select(t => t.ToType(context)).ToArray());
             
             return type;
         }

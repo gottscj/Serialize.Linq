@@ -47,7 +47,7 @@ namespace Serialize.Linq.Factories
             if(_types.Any(t => t == null))
                 throw new ArgumentException("types");
             _factorySettings = factorySettings ?? new FactorySettings();
-            _innerFactory = this.CreateFactory();
+            _innerFactory = CreateFactory();
         }
 
         public FactorySettings Settings
@@ -92,7 +92,7 @@ namespace Serialize.Linq.Factories
             var expectedTypes = new HashSet<Type>();
             foreach (var type in _types)
                 expectedTypes.UnionWith(GetComplexMemberTypes(type));
-            return new TypeResolverNodeFactory(expectedTypes, this.Settings);
+            return new TypeResolverNodeFactory(expectedTypes, Settings);
         }
 
         /// <summary>

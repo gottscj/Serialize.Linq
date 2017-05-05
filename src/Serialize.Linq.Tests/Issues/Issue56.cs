@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Xml.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serialize.Linq.Serializers;
+using Serialize.Linq.Extensions;
 
 namespace Serialize.Linq.Tests.Issues
 {
@@ -22,11 +23,8 @@ namespace Serialize.Linq.Tests.Issues
                     (groupType =>
                         enterpriseKeys.Contains(groupType.GroupEnterpriseKey));
 
-            var serializeTo = new ExpressionSerializer(new XmlSerializer())
-            {
-                AutoAddKnownTypesAsListTypes = true
-            };
-            var predicatePartSerializedToString = serializeTo.SerializeText(predicatePart);
+           
+            var predicatePartSerializedToString = predicatePart.ToJson();
 
             Assert.IsNotNull(predicatePartSerializedToString);
         }
@@ -40,12 +38,8 @@ namespace Serialize.Linq.Tests.Issues
                 (Expression<Func<GroupEntityWithNullable, bool>>)
                     (groupType =>
                         enterpriseKeys.Contains(groupType.GroupEnterpriseKey));
-
-            var serializeTo = new ExpressionSerializer(new XmlSerializer())
-            {
-                AutoAddKnownTypesAsListTypes = true
-            };
-            var predicatePartSerializedToString = serializeTo.SerializeText(predicatePart);
+            
+            var predicatePartSerializedToString = predicatePart.ToJson();
 
             Assert.IsNotNull(predicatePartSerializedToString);
         }

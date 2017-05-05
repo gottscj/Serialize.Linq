@@ -21,9 +21,6 @@ namespace Serialize.Linq.Nodes
 #else
     [CollectionDataContract(Name = "EIL")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class ElementInitNodeList : List<ElementInitNode>
     {
@@ -35,7 +32,7 @@ namespace Serialize.Linq.Nodes
                 throw new ArgumentNullException("factory");
             if (items == null)
                 throw new ArgumentNullException("items");
-            this.AddRange(items.Select(item => new ElementInitNode(factory, item)));
+            AddRange(items.Select(item => new ElementInitNode(factory, item)));
         }
 
         internal IEnumerable<ElementInit> GetElementInits(ExpressionContext context)

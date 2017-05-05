@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serialize.Linq.Extensions;
 using Serialize.Linq.Factories;
-using Serialize.Linq.Serializers;
 
 namespace Serialize.Linq.Tests.Issues
 {
@@ -97,14 +97,17 @@ namespace Serialize.Linq.Tests.Issues
             {
                 AllowPrivateFieldAccess = true
             };
-            var serializer = new ExpressionSerializer(new JsonSerializer());
-            var value = serializer.SerializeText(expression, settings);
+            var value = expression.ToJson(settings);
 
             // Modify fields
             SetFields(actualValue);
 
             // Deserialize expression
-            var actualExpression = (Expression<Func<Test, bool>>)serializer.DeserializeText(value, new ExpressionContext { AllowPrivateFieldAccess = true });
+            var context = new ExpressionContext
+            {
+                AllowPrivateFieldAccess = true
+            };
+            var actualExpression = (Expression<Func<Test, bool>>)value.ToExpression(context);
             var func = actualExpression.Compile();
 
             // Set expected value.

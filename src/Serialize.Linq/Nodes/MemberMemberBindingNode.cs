@@ -19,9 +19,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "MMB")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class MemberMemberBindingNode : MemberBindingNode
     {
@@ -30,7 +27,7 @@ namespace Serialize.Linq.Nodes
         public MemberMemberBindingNode(INodeFactory factory, MemberMemberBinding memberMemberBinding)
             : base(factory, memberMemberBinding.BindingType, memberMemberBinding.Member)
         {
-            this.Bindings = new MemberBindingNodeList(factory, memberMemberBinding.Bindings);
+            Bindings = new MemberBindingNodeList(factory, memberMemberBinding.Bindings);
         }
 
         #region DataMember
@@ -44,7 +41,7 @@ namespace Serialize.Linq.Nodes
 
         internal override MemberBinding ToMemberBinding(ExpressionContext context)
         {
-            return Expression.MemberBind(this.Member.ToMemberInfo(context), this.Bindings.GetMemberBindings(context));
+            return Expression.MemberBind(Member.ToMemberInfo(context), Bindings.GetMemberBindings(context));
         }
     }
 }

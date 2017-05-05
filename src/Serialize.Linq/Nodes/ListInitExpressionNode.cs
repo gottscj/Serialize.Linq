@@ -19,9 +19,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "LI")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class ListInitExpressionNode : ExpressionNode<ListInitExpression>
     {
@@ -50,13 +47,13 @@ namespace Serialize.Linq.Nodes
 
         protected override void Initialize(ListInitExpression expression)
         {
-            this.Initializers = new ElementInitNodeList(this.Factory, expression.Initializers);
-            this.NewExpression = this.Factory.Create(expression.NewExpression);
+            Initializers = new ElementInitNodeList(Factory, expression.Initializers);
+            NewExpression = Factory.Create(expression.NewExpression);
         }
 
         public override Expression ToExpression(ExpressionContext context)
         {
-            return Expression.ListInit((NewExpression)this.NewExpression.ToExpression(context), this.Initializers.GetElementInits(context));
+            return Expression.ListInit((NewExpression)NewExpression.ToExpression(context), Initializers.GetElementInits(context));
         }
     }
 }

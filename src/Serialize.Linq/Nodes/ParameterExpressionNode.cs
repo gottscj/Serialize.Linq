@@ -21,9 +21,6 @@ namespace Serialize.Linq.Nodes
 #else
     [DataContract(Name = "P")]
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class ParameterExpressionNode : ExpressionNode<ParameterExpression>
     {
@@ -54,11 +51,11 @@ namespace Serialize.Linq.Nodes
         protected override void Initialize(ParameterExpression expression)
         {
 #if !WINDOWS_PHONE7
-            this.IsByRef = expression.IsByRef;
+            IsByRef = expression.IsByRef;
 #else
             this.IsByRef = false;
 #endif
-            this.Name = expression.Name;
+            Name = expression.Name;
         }
 
         public override Expression ToExpression(ExpressionContext context)

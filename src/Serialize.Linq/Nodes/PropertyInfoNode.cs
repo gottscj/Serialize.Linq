@@ -28,9 +28,6 @@ namespace Serialize.Linq.Nodes
         [DataContract(Name = "PI")]
     #endif
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class PropertyInfoNode : MemberNode<PropertyInfo>
     {

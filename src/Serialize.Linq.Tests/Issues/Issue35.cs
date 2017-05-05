@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serialize.Linq.Interfaces;
-using Serialize.Linq.Serializers;
+using Serialize.Linq.Extensions;
 using Serialize.Linq.Tests.Internals;
 
 namespace Serialize.Linq.Tests.Issues
@@ -30,18 +29,13 @@ namespace Serialize.Linq.Tests.Issues
                 let test = "bar"
                 where x == test
                 select x;
-            expressions.Add(strExpr);            
-
-            foreach (var textSerializer in new ITextSerializer[] { new JsonSerializer(), new XmlSerializer() })
+            expressions.Add(strExpr);
+            
+            foreach (var expected in expressions)
             {
-                var serializer = new ExpressionSerializer(textSerializer);
-                foreach (var expected in expressions)
-                {
-                    var serialized = serializer.SerializeText(expected);
-                    var actual = serializer.DeserializeText(serialized);
+                var actual = expected.ToJson().ToExpression();
 
-                    ExpressionAssert.AreEqual(expected, actual);
-                }
+                ExpressionAssert.AreEqual(expected, actual);
             }
         }
     }

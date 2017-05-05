@@ -21,9 +21,6 @@ namespace Serialize.Linq.Nodes
 #else
     [CollectionDataContract(Name = "MBL")]    
 #endif
-#if !SILVERLIGHT
-    [Serializable]
-#endif
     #endregion
     public class MemberBindingNodeList : List<MemberBindingNode>
     {
@@ -35,7 +32,7 @@ namespace Serialize.Linq.Nodes
                 throw new ArgumentNullException("factory");
             if (items == null)
                 throw new ArgumentNullException("items");
-            this.AddRange(items.Select(m => MemberBindingNode.Create(factory, m)));
+            AddRange(items.Select(m => MemberBindingNode.Create(factory, m)));
         }
 
         internal IEnumerable<MemberBinding> GetMemberBindings(ExpressionContext context)

@@ -43,13 +43,9 @@ namespace Serialize.Linq.Internals
         /// </exception>
         public MemberTypeEnumerator(HashSet<Type> seenTypes, Type type, BindingFlags bindingFlags)
         {
-            if(seenTypes == null)
-                throw new ArgumentNullException("seenTypes");
-            if(type == null)
-                throw new ArgumentNullException("type");
+            _seenTypes = seenTypes ?? throw new ArgumentNullException(nameof(seenTypes));
+            _type = type ?? throw new ArgumentNullException(nameof(type));
 
-            _seenTypes = seenTypes;
-            _type = type;
             _bindingFlags = bindingFlags;
 
             _currentIndex = -1;
@@ -63,7 +59,7 @@ namespace Serialize.Linq.Internals
         /// </value>
         public bool IsConsidered 
         {
-            get { return this.IsConsideredType(_type); }
+            get { return IsConsideredType(_type); }
         }
 
         /// <summary>
@@ -135,7 +131,7 @@ namespace Serialize.Linq.Internals
         /// </value>
         object System.Collections.IEnumerator.Current
         {
-            get { return this.Current; }
+            get { return Current; }
         }
 
         /// <summary>
@@ -147,11 +143,11 @@ namespace Serialize.Linq.Internals
         {
             var types = new List<Type> { type };
             if (type.HasElementType)
-                types.AddRange(this.GetTypesOfType(type.GetElementType()));
-            if (type.IsGenericType)
+                types.AddRange(GetTypesOfType(type.GetElementType()));
+            if (type.GetTypeInfo().IsGenericType)
             {
                 foreach (var genericType in type.GetGenericArguments())
-                    types.AddRange(this.GetTypesOfType(genericType));
+                    types.AddRange(GetTypesOfType(genericType));
                 
             }
             return types.ToArray();
@@ -165,8 +161,8 @@ namespace Serialize.Linq.Internals
         {
             var types = new List<Type>();
             var members = _type.GetMembers(_bindingFlags);
-            foreach (var memberInfo in members.Where(this.IsConsideredMember))
-                types.AddRange(this.GetTypesOfType(memberInfo.GetReturnType()));
+            foreach (var memberInfo in members.Where(IsConsideredMember))
+                types.AddRange(GetTypesOfType(memberInfo.GetReturnType()));
             return types.ToArray();
         }
 
@@ -178,17 +174,17 @@ namespace Serialize.Linq.Internals
         /// </returns>
         public virtual bool MoveNext()
         {
-            if (!this.IsConsidered)
+            if (!IsConsidered)
                 return false;
 
             if (_allTypes == null)
-                _allTypes = this.BuildTypes();
+                _allTypes = BuildTypes();
 
             while (++_currentIndex < _allTypes.Length)
             {                
-                if (this.IsSeenType(this.Current)) continue;
-                this.AddSeenType(this.Current);
-                if (this.IsConsideredType(this.Current)) break;
+                if (IsSeenType(Current)) continue;
+                AddSeenType(Current);
+                if (IsConsideredType(Current)) break;
             }
 
             return _currentIndex < _allTypes.Length;

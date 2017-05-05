@@ -7,6 +7,7 @@
 #endregion
 
 using System;
+using System.Reflection;
 #if !WINDOWS_PHONE
 using System.Collections.Concurrent;
 #endif
@@ -16,19 +17,16 @@ namespace Serialize.Linq.Internals
 {
     public static class ValueConverter
     {
-        private static readonly ConcurrentDictionary<Type, Func<object, Type, object>> _userDefinedConverters;
-        private static readonly Regex _dateRegex = new Regex(@"/Date\((?<date>-?\d+)((?<offsign>[-+])((?<offhours>\d{2})(?<offminutes>\d{2})))?\)/"
-#if !SILVERLIGHT
-            ,RegexOptions.Compiled
-#endif
-            );
+        private static readonly ConcurrentDictionary<Type, Func<object, Type, object>> UserDefinedConverters;
+        private static readonly Regex DateRegex = new Regex(@"/Date\((?<date>-?\d+)((?<offsign>[-+])((?<offhours>\d{2})(?<offminutes>\d{2})))?\)/"
+            ,RegexOptions.Compiled);
         
         /// <summary>
         /// Initializes the <see cref="ValueConverter"/> class.
         /// </summary>
         static ValueConverter()
         {
-            _userDefinedConverters = new ConcurrentDictionary<Type, Func<object, Type, object>>();
+            UserDefinedConverters = new ConcurrentDictionary<Type, Func<object, Type, object>>();
         }
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace Serialize.Linq.Internals
             if (converter == null)
                 throw new ArgumentNullException("converter");
 
-            if (!_userDefinedConverters.TryAdd(convertTo, converter))
+            if (!UserDefinedConverters.TryAdd(convertTo, converter))
                 throw new Exception("Failed to add converter.");
         }
 
@@ -78,7 +76,7 @@ namespace Serialize.Linq.Internals
         /// </summary>
         public static void ClearCustomConverters()
         {
-            _userDefinedConverters.Clear();
+            UserDefinedConverters.Clear();
         }
 
         /// <summary>
@@ -90,7 +88,7 @@ namespace Serialize.Linq.Internals
         public static object Convert(object value, Type convertTo)
         {
             if (value == null)
-                return convertTo.IsValueType ? Activator.CreateInstance(convertTo) : null;
+                return convertTo.GetTypeInfo().IsValueType ? Activator.CreateInstance(convertTo) : null;
 
             if (convertTo.IsInstanceOfType(value))
                 return value;
@@ -99,7 +97,7 @@ namespace Serialize.Linq.Internals
             if (TryCustomConvert(value, convertTo, out retval))
                 return retval;
 
-            if (convertTo.IsEnum)
+            if (convertTo.GetTypeInfo().IsEnum)
                 return Enum.ToObject(convertTo, value);            
 
             // convert array types
@@ -115,7 +113,7 @@ namespace Serialize.Linq.Internals
             }
 
             // convert nullable types
-            if (convertTo.IsGenericType && convertTo.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (convertTo.GetTypeInfo().IsGenericType && convertTo.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 var argumentTypes = convertTo.GetGenericArguments();
                 if (argumentTypes.Length == 1)                
@@ -125,11 +123,7 @@ namespace Serialize.Linq.Internals
             // TODO: think about a better way; exception could may have an critical impact on performance
             try
             {
-#if SILVERLIGHT
-                return System.Convert.ChangeType(value, convertTo, System.Threading.Thread.CurrentThread.CurrentCulture);
-#else
                 return System.Convert.ChangeType(value, convertTo);
-#endif
             }
             catch (Exception)
             {
@@ -147,7 +141,7 @@ namespace Serialize.Linq.Internals
         private static bool TryCustomConvert(object value, Type convertTo, out object convertedValue)
         {
             Func<object, Type, object> converter;
-            if (_userDefinedConverters.TryGetValue(convertTo, out converter) || _userDefinedConverters.TryGetValue(typeof(void), out converter))
+            if (UserDefinedConverters.TryGetValue(convertTo, out converter) || UserDefinedConverters.TryGetValue(typeof(void), out converter))
             {
                 convertedValue = converter(value, convertTo);
                 return true;
@@ -179,7 +173,7 @@ namespace Serialize.Linq.Internals
             if (DateTime.TryParse(stringValue, out dateTime))
                 return true;
 
-            var match = _dateRegex.Match(stringValue);
+            var match = DateRegex.Match(stringValue);
             if (!match.Success)
                 return false;
 

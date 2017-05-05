@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serialize.Linq.Interfaces;
-using Serialize.Linq.Serializers;
+using Serialize.Linq.Extensions;
 
 namespace Serialize.Linq.Tests.Issues
 {
@@ -14,51 +13,43 @@ namespace Serialize.Linq.Tests.Issues
         [TestMethod]
         public void SerializeWithDateTimeUtcTest()
         {
-            foreach (var textSerializer in new ITextSerializer[] { new JsonSerializer(), new XmlSerializer() })
+            var yarrs = new[]
             {
-                var serializer = new ExpressionSerializer(textSerializer);
-                var yarrs = new[]
-                {
-                    new Yarr {Date = new DateTime(3000,1,1)},
-                    new Yarr {Date = new DateTime(2000,1,1)},
-                    new Yarr(),
-                    new Yarr { Date = DateTime.Now.AddYears(1) }
-                };
-                var date = DateTime.UtcNow;
-                Expression<Func<Yarr, bool>> expectedExpression = f => f.Date > date;
-                var expected = yarrs.Where(expectedExpression.Compile()).Count();
+                new Yarr {Date = new DateTime(3000,1,1)},
+                new Yarr {Date = new DateTime(2000,1,1)},
+                new Yarr(),
+                new Yarr { Date = DateTime.Now.AddYears(1) }
+            };
+            var date = DateTime.UtcNow;
+            Expression<Func<Yarr, bool>> expectedExpression = f => f.Date > date;
+            var expected = yarrs.Where(expectedExpression.Compile()).Count();
 
-                var serialized = serializer.SerializeText(expectedExpression);
-                var actualExpression = (Expression<Func<Yarr, bool>>)serializer.DeserializeText(serialized);
-                var actual = yarrs.Where(actualExpression.Compile()).Count();
+            var serialized = expectedExpression.ToJson();
+            var actualExpression = (Expression<Func<Yarr, bool>>)serialized.ToExpression();
+            var actual = yarrs.Where(actualExpression.Compile()).Count();
 
-                Assert.AreEqual(expected, actual);
-            }
+            Assert.AreEqual(expected, actual);
         }
 
         [TestMethod]
         public void SerializeWithDateTimeLocalTest()
         {
-            foreach (var textSerializer in new ITextSerializer[] { new JsonSerializer(), new XmlSerializer() })
+            var yarrs = new[]
             {
-                var serializer = new ExpressionSerializer(textSerializer);
-                var yarrs = new[]
-                {
-                    new Yarr {Date = new DateTime(3000,1,1)},
-                    new Yarr {Date = new DateTime(2000,1,1)},
-                    new Yarr(),
-                    new Yarr { Date = DateTime.Now.AddYears(1) }
-                };
-                var date = DateTime.Now;
-                Expression<Func<Yarr, bool>> expectedExpression = f => f.Date > date;
-                var expected = yarrs.Where(expectedExpression.Compile()).Count();
+                new Yarr {Date = new DateTime(3000,1,1)},
+                new Yarr {Date = new DateTime(2000,1,1)},
+                new Yarr(),
+                new Yarr { Date = DateTime.Now.AddYears(1) }
+            };
+            var date = DateTime.Now;
+            Expression<Func<Yarr, bool>> expectedExpression = f => f.Date > date;
+            var expected = yarrs.Where(expectedExpression.Compile()).Count();
 
-                var serialized = serializer.SerializeText(expectedExpression);
-                var actualExpression = (Expression<Func<Yarr, bool>>)serializer.DeserializeText(serialized);
-                var actual = yarrs.Where(actualExpression.Compile()).Count();
+            var serialized = expectedExpression.ToJson();
+            var actualExpression = (Expression<Func<Yarr, bool>>)serialized.ToExpression();
+            var actual = yarrs.Where(actualExpression.Compile()).Count();
 
-                Assert.AreEqual(expected, actual);
-            }
+            Assert.AreEqual(expected, actual);
         }
 
         public class Yarr
