@@ -28,6 +28,4 @@ namespace Serialize.Linq
             return typeof(ExpressionNode).GetTypeInfo().IsAssignableFrom(objectType);
         }
     }
-
-
 }
