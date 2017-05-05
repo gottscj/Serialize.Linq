@@ -11,12 +11,12 @@ Simple install via [NuGet][1]:
     
 ## Building the source
 
-    git clone https://github.com/esskar/Serialize.Linq.git
+    git clone https://github.com/gottscj/Serialize.Linq.git
 
 After cloning the repository, run 
 
     cd src\
-    build.cmd
+    build\build.cmd
 
 __NOTE__: Opening the solution requires VS 2017.
 
