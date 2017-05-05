@@ -60,11 +60,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Serialize.Linq.Example\Models\Models.csproj">
+    <ProjectReference Include="..\Models\Models.csproj">
       <Project>{61e45727-4445-4f7d-a23d-ff7496ca3446}</Project>
       <Name>Models</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Serialize.Linq\Serialize.Linq.csproj">
+    <ProjectReference Include="..\..\Serialize.Linq\Serialize.Linq.csproj">
       <Project>{b1b6ae50-9a8a-41ec-af1a-acc276720668}</Project>
       <Name>Serialize.Linq</Name>
     </ProjectReference>

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Serialize.Linq.Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp.AspNetCore", "Serialize.Linq.Example\WebApp.AspNetCore\WebApp.AspNetCore.csproj", "{1003D36B-1FEC-4067-A015-585D5E8D74AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebClient.Net46", "WebClient.Net46\WebClient.Net46.csproj", "{0212291A-093C-4D53-AC83-D1F88DDF328C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebClient.Net46", "Serialize.Linq.Example\WebClient.Net46\WebClient.Net46.csproj", "{0212291A-093C-4D53-AC83-D1F88DDF328C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
